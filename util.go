@@ -27,6 +27,24 @@ func CheckIsStructSlice(dest any) bool {
 		return false
 	}
 	tmpSlice := reflect.MakeSlice(typeOf, 1, 1)
+	if tmpSlice.Index(0).Kind() == reflect.Pointer {
+		pointerKind := tmpSlice.Index(0).Elem().Kind()
+		if pointerKind == reflect.Struct {
+			return true
+		}
+		if pointerKind == reflect.Invalid {
+			return false
+			//unknown := tmpSlice.Index(0).Type().String()
+			//switch unknown {
+			//case `int`, `int32`, `int64`, `float64`, `float32`, `string`, `*int`, `*int32`, `*int64`, `*float64`, `*float32`, `*string`:
+			//	return false
+			//case `bool`, `*bool`:
+			//	return false
+			//default:
+			//	return true
+			//}
+		}
+	}
 	if tmpSlice.Index(0).Kind() != reflect.Struct {
 		return false
 	}

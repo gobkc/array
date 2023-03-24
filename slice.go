@@ -2,8 +2,10 @@ package array
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
+	"strings"
 )
 
 func MakeSlice[T any](dest ...T) []T {
@@ -67,4 +69,35 @@ func Copy[To any](fromSlice any) *To {
 	}
 	reflect.ValueOf(t).Elem().Set(values)
 	return t
+}
+
+func Quote[T []string | []int | []int32 | []int64 | float64 | float32](from T, sign ...string) (to []string) {
+	var s = `'`
+	if len(sign) > 0 {
+		s = sign[0]
+	}
+	valueOf := reflect.ValueOf(from)
+	if reflect.TypeOf(from).Kind() == reflect.Pointer {
+		valueOf = valueOf.Elem()
+	}
+	for curRow := 0; curRow < valueOf.Len(); curRow++ {
+		to = append(to, fmt.Sprintf(`%s%v%s`, s, valueOf.Field(curRow).Interface(), s))
+	}
+	return to
+}
+
+func QuoteString[T []string | []int | []int32 | []int64 | float64 | float32](from T, sign ...string) (to string) {
+	var s = `'`
+	if len(sign) > 0 {
+		s = sign[0]
+	}
+	valueOf := reflect.ValueOf(from)
+	if reflect.TypeOf(from).Kind() == reflect.Pointer {
+		valueOf = valueOf.Elem()
+	}
+	var toSlice []string
+	for curRow := 0; curRow < valueOf.Len(); curRow++ {
+		toSlice = append(toSlice, fmt.Sprintf(`%s%v%s`, s, valueOf.Field(curRow).Interface(), s))
+	}
+	return strings.Join(toSlice, `,`)
 }
