@@ -48,18 +48,18 @@ func Ids[T []int | []int32 | []int64 | []float64 | []float32 | []string](pointSl
 		return new(T)
 	}
 	queryFlag := false
+	var fName string
+	var snakeName string
 	for curRow := 0; curRow < valueOf.Len(); curRow++ {
 		rowValueOf := valueOf.Index(curRow)
 		rowTypeOf := reflect.TypeOf(rowValueOf.Interface())
-		var fName string
-		var snakeName string
 		for curField := 0; curField < valueOf.Index(curRow).NumField(); curField++ {
 			if fName == `` {
 				fName = rowTypeOf.Field(curField).Tag.Get("json")
 				if fName == "" {
 					fName = rowTypeOf.Field(curField).Name
 				}
-				snakeName = fName
+				snakeName = ToSnake(fName)
 			}
 			if fName == fieldNameOrJsonTag || snakeName == fieldNameOrJsonTag {
 				queryFlag = true
