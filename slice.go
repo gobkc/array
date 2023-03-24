@@ -7,7 +7,7 @@ import (
 )
 
 func MakeSlice[T any](dest ...T) []T {
-	objects := make([]T, len(dest))
+	objects := make([]T, 0)
 	objects = append(objects, dest...)
 	return objects
 }
@@ -30,7 +30,7 @@ func Copy[To any](fromSlice any) *To {
 	newTo := to.Index(0)
 	toMap := make(map[string]int)
 	toTypeOf := newTo.Type()
-	for i := 0; i < reflect.ValueOf(newTo).NumField(); i++ {
+	for i := 0; i < newTo.NumField(); i++ {
 		fName := toTypeOf.Field(i).Name
 		toMap[fName] = i
 		tag := toTypeOf.Field(i).Tag.Get(`json`)
@@ -45,15 +45,17 @@ func Copy[To any](fromSlice any) *To {
 		rowTypeOf := reflect.TypeOf(rowValueOf.Interface())
 		toRow := newTo
 		for curField := 0; curField < valueOf.Index(curRow).NumField(); curField++ {
-			fName := rowTypeOf.Field(curField).Tag.Get("json")
-			if fName == "" {
-				fName = rowTypeOf.Field(curField).Name
-			}
+			fTag := rowTypeOf.Field(curField).Tag.Get("json")
+			fName := rowTypeOf.Field(curField).Name
 			toField, ok := toMap[fName]
 			if !ok {
-				continue
+				toField, ok = toMap[fTag]
+				if !ok {
+					continue
+				}
 			}
-			if toName := toTypeOf.Field(toField).Name; toName == fName || ToSnake(toName) == fName ||
+			toName := toTypeOf.Field(toField).Name
+			if toName == fName || ToSnake(toName) == fName ||
 				toTypeOf.Field(toField).Tag.Get(`json`) == fName {
 				if toRow.Field(toField).Kind() == rowValueOf.Field(curField).Kind() &&
 					toRow.Field(toField).Kind() != reflect.Pointer && rowValueOf.Field(curField).Kind() != reflect.Pointer {
