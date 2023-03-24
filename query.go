@@ -23,6 +23,15 @@ func First[T any](array []T) (*T, error) {
 	return first, nil
 }
 
+var queryIdsMap = map[reflect.Kind]func(dest *reflect.Value, v any){
+	reflect.Int: func(dest *reflect.Value, v any) {
+		dest.Set(reflect.ValueOf(to.Int[int](v)))
+	},
+	reflect.Int32: func(dest *reflect.Value, v any) {
+		dest.Set(reflect.ValueOf(to.Int[int32](v)))
+	},
+}
+
 func Ids[T []int | []int32 | []int64 | []float64 | []float32 | []string](pointSlice any, fieldNameOrJsonTag string) *T {
 	typeOf := reflect.TypeOf(pointSlice)
 	valueOf := reflect.ValueOf(pointSlice)
@@ -36,35 +45,45 @@ func Ids[T []int | []int32 | []int64 | []float64 | []float32 | []string](pointSl
 	newSlice := reflect.MakeSlice(resultTypeOf, valueOf.Len(), valueOf.Len())
 	resultKind := newSlice.Index(0).Kind()
 	if kind != reflect.Slice && kind != reflect.Array {
-		return result
+		return new(T)
 	}
+	queryFlag := false
 	for curRow := 0; curRow < valueOf.Len(); curRow++ {
 		rowValueOf := valueOf.Index(curRow)
 		rowTypeOf := reflect.TypeOf(rowValueOf.Interface())
+		var fName string
+		var snakeName string
 		for curField := 0; curField < valueOf.Index(curRow).NumField(); curField++ {
-			fName := rowTypeOf.Field(curField).Tag.Get("json")
-			if fName == "" {
-				fName = rowTypeOf.Field(curField).Name
+			if fName == `` {
+				fName = rowTypeOf.Field(curField).Tag.Get("json")
+				if fName == "" {
+					fName = rowTypeOf.Field(curField).Name
+				}
+				snakeName = fName
 			}
-			if fName == fieldNameOrJsonTag {
+			if fName == fieldNameOrJsonTag || snakeName == fieldNameOrJsonTag {
+				queryFlag = true
 				v := rowValueOf.Field(curField).Interface()
 				switch resultKind {
 				case reflect.Int:
-					newSlice.Index(curRow).Set(reflect.ValueOf(to.Int[int](v)))
+					v = to.Any[int](v)
 				case reflect.Int32:
-					newSlice.Index(curRow).Set(reflect.ValueOf(to.Int[int32](v)))
+					v = to.Any[int32](v)
 				case reflect.Int64:
-					newSlice.Index(curRow).Set(reflect.ValueOf(to.Int[int64](v)))
+					v = to.Any[int64](v)
 				case reflect.Float32:
-					newSlice.Index(curRow).Set(reflect.ValueOf(to.Float[float32](v)))
+					v = to.Any[float32](v)
 				case reflect.Float64:
-					newSlice.Index(curRow).Set(reflect.ValueOf(to.Float[float64](v)))
+					v = to.Any[float64](v)
 				case reflect.String:
-					newSlice.Index(curRow).Set(reflect.ValueOf(to.String(v)))
+					v = to.Any[string](v)
 				}
+				newSlice.Index(curRow).Set(reflect.ValueOf(v))
 			}
 		}
 	}
-	reflect.ValueOf(result).Elem().Set(newSlice)
+	if queryFlag {
+		reflect.ValueOf(result).Elem().Set(newSlice)
+	}
 	return result
 }
