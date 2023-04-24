@@ -1,6 +1,8 @@
 package array
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func ToSnake(name string) string {
 	var convert []byte

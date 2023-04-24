@@ -15,12 +15,12 @@ func Foreach[T comparable](list []T, f func(line int, row *T)) {
 
 var ErrEmptyArray = errors.New("ErrEmptyArray")
 
-func First[T any](array []T) (*T, error) {
-	if len(array) == 0 {
-		return nil, ErrEmptyArray
+func First[T any](s []T) T {
+	if len(s) == 0 {
+		t := new(T)
+		return *t
 	}
-	first := &array[0]
-	return first, nil
+	return s[0]
 }
 
 var queryIdsMap = map[reflect.Kind]func(dest *reflect.Value, v any){

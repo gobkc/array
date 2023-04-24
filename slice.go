@@ -3,7 +3,6 @@ package array
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 )
@@ -16,59 +15,57 @@ func MakeSlice[T any](dest ...T) []T {
 
 var ErrCopySupport = errors.New(`OnlySupportSliceStruct`)
 
-func Copy[To any](fromSlice any) *To {
-	t := new(To)
-	typeOf := reflect.TypeOf(fromSlice)
-	valueOf := reflect.ValueOf(fromSlice)
+// Copy copies a slice of src to a slice of type []ToType
+// It only copies the fields that have the same name or tag
+func Copy[ToType any](src any) []ToType {
+	typeOf := reflect.TypeOf(src)
+	valueOf := reflect.ValueOf(src)
 	if typeOf.Kind() == reflect.Pointer {
 		typeOf = typeOf.Elem()
 		valueOf = valueOf.Elem()
 	}
-	if !CheckIsStructSlice(t) || !CheckIsStructSlice(valueOf.Interface()) {
-		log.Println(`Array.Copy:`, ErrCopySupport)
-		return nil
-	}
-	to := reflect.MakeSlice(reflect.TypeOf(t).Elem(), 1, 1)
-	newTo := to.Index(0)
-	toMap := make(map[string]int)
-	toTypeOf := newTo.Type()
-	for i := 0; i < newTo.NumField(); i++ {
-		fName := toTypeOf.Field(i).Name
-		toMap[fName] = i
-		tag := toTypeOf.Field(i).Tag.Get(`json`)
-		if tag != `` {
-			toMap[tag] = i
-		}
-		toMap[ToSnake(fName)] = i
-	}
-	var values = reflect.MakeSlice(reflect.TypeOf(t).Elem(), valueOf.Len(), valueOf.Len())
+	dst := make([]ToType, valueOf.Len(), valueOf.Len())
 	for curRow := 0; curRow < valueOf.Len(); curRow++ {
-		rowValueOf := valueOf.Index(curRow)
-		rowTypeOf := reflect.TypeOf(rowValueOf.Interface())
-		toRow := newTo
-		for curField := 0; curField < valueOf.Index(curRow).NumField(); curField++ {
-			fTag := rowTypeOf.Field(curField).Tag.Get("json")
-			fName := rowTypeOf.Field(curField).Name
-			toField, ok := toMap[fName]
-			if !ok {
-				toField, ok = toMap[fTag]
-				if !ok {
-					continue
-				}
+		to := new(ToType)
+		s := valueOf.Index(curRow).Interface()
+		copyFields(s, to)
+		dst[curRow] = *to
+	}
+	return dst
+}
+
+// copyFields copies the fields from src to dst
+// It uses reflection to get the field names and tags
+func copyFields(src interface{}, dst interface{}) {
+	srcVal := reflect.ValueOf(src)
+	dstVal := reflect.ValueOf(dst)
+	srcType := srcVal.Type()
+	dstType := dstVal.Type()
+	if srcType.Kind() == reflect.Pointer {
+		srcType = srcType.Elem()
+		srcVal = srcVal.Elem()
+	}
+	if dstType.Kind() == reflect.Pointer {
+		dstType = dstType.Elem()
+		dstVal = dstVal.Elem()
+	}
+	for i := 0; i < srcType.NumField(); i++ {
+		srcField := srcType.Field(i)
+		srcName := srcField.Name
+		srcTag := srcField.Tag.Get("json")
+		for j := 0; j < dstType.NumField(); j++ {
+			dstField := dstType.Field(j)
+			dstName := dstField.Name
+			dstTag := dstField.Tag.Get("json")
+			if dstVal.Field(j).Type().Kind() != srcVal.Field(i).Type().Kind() {
+				continue
 			}
-			toName := toTypeOf.Field(toField).Name
-			if toName == fName || ToSnake(toName) == fName ||
-				toTypeOf.Field(toField).Tag.Get(`json`) == fName {
-				if toRow.Field(toField).Kind() == rowValueOf.Field(curField).Kind() &&
-					toRow.Field(toField).Kind() != reflect.Pointer && rowValueOf.Field(curField).Kind() != reflect.Pointer {
-					toRow.Field(toField).Set(rowValueOf.Field(curField))
-				}
+			if srcName == dstName || (srcTag != `` && dstTag != `` && srcTag == dstTag) {
+				dstVal.Field(j).Set(srcVal.Field(i))
+				break
 			}
 		}
-		values.Index(curRow).Set(toRow)
 	}
-	reflect.ValueOf(t).Elem().Set(values)
-	return t
 }
 
 func Quote[T []string | []int | []int32 | []int64 | float64 | float32](from T, sign ...string) (to []string) {
