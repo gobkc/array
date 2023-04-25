@@ -2,6 +2,7 @@ package array
 
 import (
 	"reflect"
+	"strings"
 )
 
 func ToSnake(name string) string {
@@ -51,4 +52,13 @@ func CheckIsStructSlice(dest any) bool {
 		return false
 	}
 	return true
+}
+
+func Part(str, sep string, n int) string {
+	parts := strings.Split(str, sep)
+	n--
+	if n < 0 || n >= len(parts) {
+		return ""
+	}
+	return parts[n]
 }
