@@ -98,3 +98,31 @@ func QuoteString[T []string | []int | []int32 | []int64 | float64 | float32](fro
 	}
 	return strings.Join(toSlice, `,`)
 }
+
+type Element any
+
+func Delete[T Element](slice []T, index int) []T {
+	// check if the index is valid
+	if index < 0 || index >= len(slice) {
+		panic("index out of range")
+	}
+	// use the copy function to slide the elements to the left
+	copy(slice[index:], slice[index+1:])
+	// return the slice without the last element
+	return slice[:len(slice)-1]
+}
+
+func Remove[T Element](slice []T, element T) []T {
+	// loop through the slice to find the element
+	for i, v := range slice {
+		// if the element is found
+		if reflect.DeepEqual(v, element) {
+			// use the copy function to slide the elements to the left
+			copy(slice[i:], slice[i+1:])
+			// return the slice without the last element
+			return slice[:len(slice)-1]
+		}
+	}
+	// if the element is not found, return the original slice
+	return slice
+}
