@@ -126,3 +126,25 @@ func Remove[T Element](slice []T, element T) []T {
 	// if the element is not found, return the original slice
 	return slice
 }
+
+func RemoveFunc[T any](slice []T, match func(T) bool) []T {
+	result := make([]T, 0, len(slice))
+	for _, v := range slice {
+		if !match(v) {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+func RemoveDuplicates[T comparable](slice []T) []T {
+	seen := make(map[T]bool)
+	result := make([]T, 0, len(slice))
+	for _, v := range slice {
+		if !seen[v] {
+			seen[v] = true
+			result = append(result, v)
+		}
+	}
+	return result
+}
