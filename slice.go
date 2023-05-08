@@ -104,7 +104,7 @@ type Element any
 func Delete[T Element](slice []T, index int) []T {
 	// check if the index is valid
 	if index < 0 || index >= len(slice) {
-		panic("index out of range")
+		return slice
 	}
 	// use the copy function to slide the elements to the left
 	copy(slice[index:], slice[index+1:])
