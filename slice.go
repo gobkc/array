@@ -120,7 +120,7 @@ func Remove[T Element](slice []T, element T) []T {
 			// use the copy function to slide the elements to the left
 			copy(slice[i:], slice[i+1:])
 			// return the slice without the last element
-			return slice[:len(slice)-1]
+			return Remove(slice[:len(slice)-1], element)
 		}
 	}
 	// if the element is not found, return the original slice
