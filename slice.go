@@ -34,6 +34,14 @@ func Copy[ToType any](src any) []ToType {
 	return dst
 }
 
+func SliceToPointer[T any](s []T) []*T {
+	p := make([]*T, len(s), cap(s))
+	for i := range s {
+		p[i] = &s[i]
+	}
+	return p
+}
+
 // copyFields copies the fields from src to dst
 // It uses reflection to get the field names and tags
 func copyFields(src interface{}, dst interface{}) {
