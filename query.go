@@ -65,17 +65,17 @@ func Ids[T int | int32 | int64 | float64 | float32 | string](pointSlice any, fie
 			var v any
 			var t any = (*T)(nil)
 			switch t.(type) {
-			case int:
+			case *int:
 				v = to.Any[int](field.Interface())
-			case int32:
+			case *int32:
 				v = to.Any[int32](field.Interface())
-			case int64:
+			case *int64:
 				v = to.Any[int64](field.Interface())
-			case string:
+			case *string:
 				v = to.Any[string](field.Interface())
-			case float32:
+			case *float32:
 				v = to.Any[float32](field.Interface())
-			case float64:
+			case *float64:
 				v = to.Any[float64](field.Interface())
 			default:
 				continue
