@@ -32,58 +32,56 @@ var queryIdsMap = map[reflect.Kind]func(dest *reflect.Value, v any){
 	},
 }
 
-func Ids[T []int | []int32 | []int64 | []float64 | []float32 | []string](pointSlice any, fieldNameOrJsonTag string) *T {
-	typeOf := reflect.TypeOf(pointSlice)
-	valueOf := reflect.ValueOf(pointSlice)
-	if typeOf.Kind() == reflect.Pointer {
-		typeOf = typeOf.Elem()
-		valueOf = valueOf.Elem()
+func Ids[T int | int32 | int64 | float64 | float32 | string](pointSlice any, fieldNameOrJsonTag string) *[]T {
+	result := make([]T, 0)
+	psType := reflect.TypeOf(pointSlice)
+	psValue := reflect.ValueOf(pointSlice)
+	if psType.Kind() != reflect.Slice {
+		return &result
 	}
-	var result = new(T)
-	kind := typeOf.Kind()
-	resultTypeOf := reflect.TypeOf(result).Elem()
-	newSlice := reflect.MakeSlice(resultTypeOf, valueOf.Len(), valueOf.Len())
-	resultKind := newSlice.Index(0).Kind()
-	if kind != reflect.Slice && kind != reflect.Array {
-		return new(T)
-	}
-	queryFlag := false
-	var fName string
-	var snakeName string
-	for curRow := 0; curRow < valueOf.Len(); curRow++ {
-		rowValueOf := valueOf.Index(curRow)
-		rowTypeOf := reflect.TypeOf(rowValueOf.Interface())
-		for curField := 0; curField < valueOf.Index(curRow).NumField(); curField++ {
-			if fName == `` {
-				fName = rowTypeOf.Field(curField).Tag.Get("json")
-				if fName == "" {
-					fName = rowTypeOf.Field(curField).Name
+	for i := 0; i < psValue.Len(); i++ {
+		elem := psValue.Index(i)
+		elemType := elem.Type()
+		if elemType.Kind() == reflect.Pointer {
+			elem = elem.Elem()
+			elemType = elemType.Elem()
+		}
+		if elemType.Kind() != reflect.Struct {
+			continue
+		}
+		var field reflect.Value
+		if _, ok := elemType.FieldByName(fieldNameOrJsonTag); ok {
+			field = elem.FieldByName(fieldNameOrJsonTag)
+		} else {
+			for j := 0; j < elemType.NumField(); j++ {
+				f := elemType.Field(j)
+				if tag, ok := f.Tag.Lookup("json"); ok && tag == fieldNameOrJsonTag {
+					field = elem.Field(j)
+					break
 				}
-				snakeName = ToSnake(fName)
-			}
-			if fName == fieldNameOrJsonTag || snakeName == fieldNameOrJsonTag {
-				queryFlag = true
-				v := rowValueOf.Field(curField).Interface()
-				switch resultKind {
-				case reflect.Int:
-					v = to.Any[int](v)
-				case reflect.Int32:
-					v = to.Any[int32](v)
-				case reflect.Int64:
-					v = to.Any[int64](v)
-				case reflect.Float32:
-					v = to.Any[float32](v)
-				case reflect.Float64:
-					v = to.Any[float64](v)
-				case reflect.String:
-					v = to.Any[string](v)
-				}
-				newSlice.Index(curRow).Set(reflect.ValueOf(v))
 			}
 		}
+		if field.IsValid() {
+			var v any
+			var t any = (*T)(nil)
+			switch t.(type) {
+			case int:
+				v = to.Any[int](field.Interface())
+			case int32:
+				v = to.Any[int32](field.Interface())
+			case int64:
+				v = to.Any[int64](field.Interface())
+			case string:
+				v = to.Any[string](field.Interface())
+			case float32:
+				v = to.Any[float32](field.Interface())
+			case float64:
+				v = to.Any[float64](field.Interface())
+			default:
+				continue
+			}
+			result = append(result, v.(T))
+		}
 	}
-	if queryFlag {
-		reflect.ValueOf(result).Elem().Set(newSlice)
-	}
-	return result
+	return &result
 }
