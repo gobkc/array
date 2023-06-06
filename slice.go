@@ -189,3 +189,31 @@ func MakeMap[KeyType KeyTypeDef, ItemType any](slice []ItemType, field string) m
 	}
 	return result
 }
+
+func MakeMaps[KeyType KeyTypeDef, ItemType any](slice []ItemType, field string) map[KeyType][]ItemType {
+	result := make(map[KeyType][]ItemType)
+	for _, elem := range slice {
+		v := reflect.ValueOf(elem)
+		if v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+		if v.Kind() == reflect.Struct {
+			t := v.Type()
+			index := -1
+			for i := 0; i < t.NumField(); i++ {
+				f := t.Field(i)
+				if f.Name == field || f.Tag.Get("json") == field {
+					index = i
+					break
+				}
+			}
+			if index >= 0 {
+				key := v.Field(index).Interface()
+				if convertKey, ok := key.(KeyType); ok {
+					result[convertKey] = append(result[convertKey], elem)
+				}
+			}
+		}
+	}
+	return result
+}
