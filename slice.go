@@ -210,7 +210,11 @@ func MakeMaps[KeyType KeyTypeDef, ItemType any](slice []ItemType, field string) 
 			if index >= 0 {
 				key := v.Field(index).Interface()
 				if convertKey, ok := key.(KeyType); ok {
-					result[convertKey] = append(result[convertKey], elem)
+					if query, queryOk := result[convertKey]; queryOk {
+						result[convertKey] = append(query, elem)
+					} else {
+						result[convertKey] = []ItemType{elem}
+					}
 				}
 			}
 		}
