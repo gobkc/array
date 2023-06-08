@@ -161,7 +161,9 @@ type KeyTypeDef interface {
 	string | int8 | int | int32 | int64 | float32 | float64
 }
 
-// MakeMap usage: m1 := MakeMap[int](userSlice, `age`)
+// MakeMap slice convert map
+// appMaps := array.MakeMap[int64](apps, `plan_id`)
+// appMaps result: map[plan_id]app
 func MakeMap[KeyType KeyTypeDef, ItemType any](slice []ItemType, field string) map[KeyType]ItemType {
 	result := make(map[KeyType]ItemType)
 	for _, elem := range slice {
@@ -190,6 +192,10 @@ func MakeMap[KeyType KeyTypeDef, ItemType any](slice []ItemType, field string) m
 	return result
 }
 
+// MakeMaps slice convert map
+// Example :
+// appMaps := array.MakeMaps[int64](apps, `plan_id`)
+// appMaps result: map[plan_id][]apps
 func MakeMaps[KeyType KeyTypeDef, ItemType any](slice []ItemType, field string) map[KeyType][]ItemType {
 	result := make(map[KeyType][]ItemType)
 	for _, elem := range slice {
@@ -220,4 +226,29 @@ func MakeMaps[KeyType KeyTypeDef, ItemType any](slice []ItemType, field string) 
 		}
 	}
 	return result
+}
+
+// Index get slice elem
+// Example:
+//
+//	 a := []func(){
+//			func() {
+//				fmt.Println(123)
+//			},
+//			func() {
+//				fmt.Println(456)
+//			},
+//		}
+//		ss := Index(a, 2)
+//		if ss != nil {
+//			ss()
+//		} else {
+//			fmt.Println(`ss is nil`)
+//		}
+func Index[T any](list []T, index int) T {
+	var result = new(T)
+	if len(list) <= index || index < 0 {
+		return *result
+	}
+	return list[index]
 }
