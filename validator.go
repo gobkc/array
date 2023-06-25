@@ -118,6 +118,8 @@ func Validate[T interface{}](data T, opts ...ValidateOption) (bool, error) {
 			}
 		}
 		return true, nil
+	case reflect.Pointer:
+		return Validate(dataValue.Elem().Interface(), opts...)
 	default:
 		return false, ValidateUnknownRuleError
 	}
