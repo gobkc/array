@@ -76,6 +76,8 @@ func copyFields(src interface{}, dst interface{}) {
 	}
 }
 
+// Quote Example
+// Quote([]string{"aa", "bbb"}) result:['aa' 'bbb']
 func Quote[T []string | []int | []int32 | []int64 | float64 | float32](from T, sign ...string) (to []string) {
 	var s = `'`
 	if len(sign) > 0 {
@@ -86,11 +88,13 @@ func Quote[T []string | []int | []int32 | []int64 | float64 | float32](from T, s
 		valueOf = valueOf.Elem()
 	}
 	for curRow := 0; curRow < valueOf.Len(); curRow++ {
-		to = append(to, fmt.Sprintf(`%s%v%s`, s, valueOf.Field(curRow).Interface(), s))
+		to = append(to, fmt.Sprintf(`%s%v%s`, s, valueOf.Index(curRow).Interface(), s))
 	}
 	return to
 }
 
+// QuoteString Example
+// QuoteString([]string{"aa", "bbb"}) result:'aa','bbb'
 func QuoteString[T []string | []int | []int32 | []int64 | float64 | float32](from T, sign ...string) (to string) {
 	var s = `'`
 	if len(sign) > 0 {
@@ -102,7 +106,7 @@ func QuoteString[T []string | []int | []int32 | []int64 | float64 | float32](fro
 	}
 	var toSlice []string
 	for curRow := 0; curRow < valueOf.Len(); curRow++ {
-		toSlice = append(toSlice, fmt.Sprintf(`%s%v%s`, s, valueOf.Field(curRow).Interface(), s))
+		toSlice = append(toSlice, fmt.Sprintf(`%s%v%s`, s, valueOf.Index(curRow).Interface(), s))
 	}
 	return strings.Join(toSlice, `,`)
 }
