@@ -6,9 +6,9 @@ import (
 	"reflect"
 )
 
-func Foreach[T comparable](list []T, f func(line int, row *T)) {
+func Foreach[T comparable](list []T, f func(i int, row T)) {
 	for i, item := range list {
-		f(i, &item)
+		f(i, item)
 		list[i] = item
 	}
 }
