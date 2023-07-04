@@ -256,3 +256,18 @@ func Index[T any](list []T, index int) T {
 	}
 	return list[index]
 }
+
+// Count example:
+//
+//	count := Count(ss, func(i int, row *T2) bool {
+//			return row.Name == `A1`
+//	})
+func Count[T any](array []T, fc func(i int, row T) bool) int {
+	count := 0
+	for i, row := range array {
+		if fc(i, row) {
+			count++
+		}
+	}
+	return count
+}
