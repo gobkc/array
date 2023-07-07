@@ -126,7 +126,7 @@ func Validate[T interface{}](data T, opts ...ValidateOption) (bool, error) {
 }
 
 var (
-	emailRegexp    = regexp.MustCompile(`^\w+@\w+\.\w+$`)
+	emailRegexp    = regexp.MustCompile(`^.+@.+\..+$`)
 	ipRegexp       = regexp.MustCompile(`^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`)
 	usernameRegexp = regexp.MustCompile(`^\w*$`)
 	mobileRegexp   = regexp.MustCompile(`^1[3-9]\d{9}$`)
