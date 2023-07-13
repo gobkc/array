@@ -92,7 +92,7 @@ func Validate[T interface{}](data T, opts ...ValidateOption) (bool, error) {
 					if errorTag != `` {
 						err = errors.New(errorTag)
 					}
-					return false, fmt.Errorf("%s:%w", field.Name, err)
+					return false, err
 				}
 			} else if regular != `` {
 				matchOk := regexp.MustCompile(regular).MatchString(value.String())
