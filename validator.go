@@ -185,8 +185,6 @@ func validateStringByRule(str string, rule string) (bool, error) {
 			if !telRegexp.MatchString(str) {
 				return false, ValidateTelError
 			}
-		default:
-			return false, ValidateUnknownRuleError
 		}
 	}
 	return true, nil
