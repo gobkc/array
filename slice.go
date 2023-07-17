@@ -7,9 +7,13 @@ import (
 	"strings"
 )
 
-func MakeSlice[T any](dest ...T) []T {
+func Slices[T any](dest ...T) []T {
 	objects := make([]T, 0)
-	objects = append(objects, dest...)
+	for _, v := range dest {
+		if !reflect.ValueOf(v).IsZero() {
+			objects = append(objects, v)
+		}
+	}
 	return objects
 }
 
