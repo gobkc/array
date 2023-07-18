@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -314,4 +315,48 @@ func PackField[F, T any](slices []T, f func(i int, item T) F) (dest []F) {
 		}
 	}
 	return
+}
+
+// QueryElement example:
+// fmt.Println(QueryElement[string](si, "0.Schools.Middle.Name.1"))
+func QueryElement[T any](dest any, path string) T {
+	parts := strings.Split(strings.TrimPrefix(path, "."), ".")
+	// Get the reflect.Value of dest
+	v := reflect.ValueOf(dest)
+	// Loop through the parts of the path
+	for _, part := range parts {
+		// If v is invalid or nil, return the zero value of T
+		if !v.IsValid() || (v.Kind() == reflect.Ptr && v.IsNil()) {
+			return reflect.Zero(reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
+		}
+		// If v is a pointer, dereference it
+		if v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+		// Switch on the kind of v
+		switch v.Kind() {
+		case reflect.Struct:
+			// If v is a struct, use FieldByName to get the field with the name of part
+			if _, ok := v.Type().FieldByName(part); ok {
+				v = v.FieldByName(part)
+			} else {
+				return reflect.Zero(reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
+			}
+		case reflect.Slice, reflect.Array:
+			index, _ := strconv.Atoi(part)
+			if v.Len() > index {
+				v = v.Index(index)
+			} else {
+				return reflect.Zero(reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
+			}
+		case reflect.Map:
+			// If v is a map, use MapIndex to get the value with the key of part
+			v = v.MapIndex(reflect.ValueOf(part))
+		default:
+			// If v is none of the above, return the zero value of T
+			return reflect.Zero(reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
+		}
+	}
+	// Return the final value of v as T
+	return v.Interface().(T)
 }
