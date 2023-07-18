@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// Slices list := array.Slices(item)
 func Slices[T any](dest ...T) []T {
 	objects := make([]T, 0)
 	for _, v := range dest {
@@ -274,4 +275,43 @@ func Count[T any](array []T, fc func(i int, row T) bool) int {
 		}
 	}
 	return count
+}
+
+// Pack example
+//
+//	d := Pack(si, func(i int, item *SI) bool {
+//		return item.Age > 1
+//	})
+func Pack[T any](slices []T, f func(i int, item T) bool) (dest []T) {
+	for i, slice := range slices {
+		if ok := f(i, slice); ok {
+			dest = append(dest, slice)
+		}
+	}
+	return
+}
+
+// PackField example:
+//
+//	d := PackField[string](si, func(i int, item *SI) string {
+//		if item.Age > 1 {
+//			return item.Name
+//		}
+//		return ``
+//	})
+func PackField[F, T any](slices []T, f func(i int, item T) F) (dest []F) {
+	for i, slice := range slices {
+		field := f(i, slice)
+		itemType := reflect.TypeOf(field)
+		itemValue := reflect.ValueOf(field)
+		if itemType.Kind() == reflect.Pointer {
+			itemValue = itemValue.Elem()
+		}
+		isZero := itemValue.IsZero()
+
+		if !isZero {
+			dest = append(dest, field)
+		}
+	}
+	return
 }
