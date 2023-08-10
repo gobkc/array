@@ -103,7 +103,6 @@ func Validate[T interface{}](data T, opts ...ValidateOption) (bool, error) {
 					}
 					return false, err
 				}
-				return matchOk, nil
 			} else {
 				return false, errors.New(field.Name + `NotHaveRule`)
 			}
