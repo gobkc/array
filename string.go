@@ -56,3 +56,14 @@ func State[CodeOrInt string | int | int8 | int32 | int64, SubType int | string](
 	}
 	return *new(CodeOrInt)
 }
+
+func Split(s, sep string, num int) []string {
+	container := make([]string, num)
+	arr := strings.Split(s, sep)
+	for i, str := range arr {
+		if i+1 <= num {
+			container[i] = str
+		}
+	}
+	return container
+}
