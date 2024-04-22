@@ -53,3 +53,11 @@ func Split(s, sep string, num int) []string {
 	}
 	return container
 }
+
+func QuoteOne(dest string, sign ...string) string {
+	var s = `"`
+	if len(sign) > 0 {
+		s = sign[0]
+	}
+	return s + dest + s
+}
